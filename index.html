@@ -1,0 +1,2443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UALM Audio Generation Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.95;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .section {
+            margin-bottom: 50px;
+        }
+        
+        .section-title {
+            font-size: 1.8em;
+            color: #667eea;
+            margin-bottom: 30px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        .sample {
+            margin-bottom: 40px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .description {
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #764ba2;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            table-layout: fixed;
+        }
+        
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.9em;
+            letter-spacing: 1px;
+            width: 33.333%;
+        }
+        
+        td {
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+            width: 33.333%;
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        audio {
+            width: 100%;
+            max-width: 250px;
+            height: 40px;
+        }
+        
+        audio::-webkit-media-controls-panel {
+            background-color: #f0f0f0;
+        }
+        
+        /* Dialogue Section Styles */
+        .dialogue-demo {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .dialogue-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .message {
+            margin-bottom: 25px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .message-header {
+            padding: 12px 20px;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+        
+        .user-message .message-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .assistant-message .message-header {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+        }
+        
+        .message-content {
+            padding: 20px;
+            background: white;
+            line-height: 1.7;
+        }
+        
+        .message-content p {
+            margin-bottom: 15px;
+        }
+        
+        .message-content p:last-child {
+            margin-bottom: 0;
+        }
+        
+        .generation-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .detail-box {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .detail-box h4 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+        
+        .detail-box p {
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+        
+        .detail-box p:last-child {
+            margin-bottom: 0;
+        }
+        
+        .generated-audio {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .generated-audio h4 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+        }
+        
+        .generated-audio audio {
+            width: 100%;
+            max-width: 500px;
+        }
+        
+        .nav-buttons {
+            position: fixed;
+            right: 30px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 1000;
+        }
+        
+        .nav-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: white;
+            border: 2px solid #667eea;
+            color: #667eea;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
+        .nav-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: scale(1.1);
+        }
+        
+        @media (max-width: 768px) {
+            .nav-buttons {
+                position: static;
+                flex-direction: row;
+                justify-content: center;
+                transform: none;
+                margin: 20px 0;
+            }
+            
+            audio {
+                max-width: 100%;
+            }
+            
+            h1 {
+                font-size: 1.8em;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .generation-details {
+                grid-template-columns: 1fr;
+            }
+            
+            .dialogue-demo {
+                padding: 20px;
+            }
+        }
+        
+        footer {
+            background: #f8f9fa;
+            padding: 30px;
+            text-align: center;
+            color: #666;
+            border-top: 1px solid #eee;
+        }
+        
+        .github-link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .github-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="nav-buttons">
+        <button class="nav-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" title="Go to top">↑</button>
+        <button class="nav-btn" onclick="window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'})" title="Go to bottom">↓</button>
+    </div>
+    
+    <div class="container">
+        <header>
+            <h1>🎵 UALM Demonstration</h1>
+            <!-- <p class="subtitle">Interactive comparison of state-of-the-art audio generation models with dialogue-based generation</p> -->
+        </header>
+
+        <!-- Table of Contents -->
+        <nav style="background: white; padding: 30px; margin: 20px 40px; border-radius: 15px; box-shadow: 0 2px 15px rgba(0,0,0,0.1);">
+            <h2 style="color: #667eea; margin-bottom: 20px; text-align: center;">📚 Table of Contents</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px;">
+                <a href="#music-generation" style="display: block; padding: 15px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 10px; text-decoration: none; color: #333; transition: all 0.3s ease; border-left: 4px solid #667eea;">
+                    <strong>🎼 (UALM-Gen & UALM) Music Generation</strong><br>
+                    <span style="font-size: 0.9em; color: #666;">SongDescriber Dataset</span>
+                </a>
+                <a href="#sound-effect-generation" style="display: block; padding: 15px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 10px; text-decoration: none; color: #333; transition: all 0.3s ease; border-left: 4px solid #667eea;">
+                    <strong>🔊 (UALM-Gen & UALM) Sound Effect Generation</strong><br>
+                    <span style="font-size: 0.9em; color: #666;">AudioCaps Dataset</span>
+                </a>
+                <a href="#enrichment-imaginary" style="display: block; padding: 15px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 10px; text-decoration: none; color: #333; transition: all 0.3s ease; border-left: 4px solid #667eea;">
+                    <strong>💬 (UALM-R1) Enrichment with Imaginary Prompt</strong><br>
+                    <span style="font-size: 0.9em; color: #666;">Interactive dialogue examples</span>
+                </a>
+                <a href="#dialogue" style="display: block; padding: 15px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 10px; text-decoration: none; color: #333; transition: all 0.3s ease; border-left: 4px solid #667eea;">
+                    <strong>💬 (UALM-R1) Dialogue</strong><br>
+                    <span style="font-size: 0.9em; color: #666;">Conversational audio generation</span>
+                </a>
+                <a href="#self-reflection" style="display: block; padding: 15px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 10px; text-decoration: none; color: #333; transition: all 0.3s ease; border-left: 4px solid #667eea;">
+                    <strong>🔄 (UALM-R1) Self-Reflection</strong><br>
+                    <span style="font-size: 0.9em; color: #666;">Audio refinement process</span>
+                </a>
+                <a href="#controllability" style="display: block; padding: 15px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 10px; text-decoration: none; color: #333; transition: all 0.3s ease; border-left: 4px solid #667eea;">
+                    <strong>🎛️ (UALM-R1) Audio Generation Controllability</strong><br>
+                    <span style="font-size: 0.9em; color: #666;">Control demonstrations</span>
+                </a>
+                <a href="#audio-reasoning" style="display: block; padding: 15px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 10px; text-decoration: none; color: #333; transition: all 0.3s ease; border-left: 4px solid #667eea;">
+                    <strong>🎧 (UALM-R1) Audio Understanding Reasoning</strong><br>
+                    <span style="font-size: 0.9em; color: #666;">MMAR Examples</span>
+                </a>
+            </div>
+            <style>
+                nav a:hover {
+                    transform: translateX(5px);
+                    background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+                    box-shadow: 0 2px 10px rgba(102, 126, 234, 0.2);
+                }
+            </style>
+        </nav>
+
+        <div class="content">
+            <!-- Music Generation Section -->
+            <section class="section" id="music-generation">
+                <h2 class="section-title">🎼 (UALM-Gen & UALM) Music Generation (SongDescriber Dataset)</h2>
+                
+                <!-- SongDescriber 1 -->
+                <div class="sample">
+                    <p class="description"><strong>Sample 1:</strong> Electronic music that has a constant melody throughout with accompanying instruments used to supplement the melody which can be heard in possibly a casual setting</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Groundtruth</th>
+                                <th>UALM-Gen</th>
+                                <th>UALM</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><audio controls><source src="audio/naive_music_gt_1.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_music_ualmgen_1.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_music_ualm_1.wav" type="audio/wav"></audio></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table style="margin-top: 10px;">
+                        <thead>
+                            <tr>
+                                <th>ETTA</th>
+                                <th>Stable Audio Open</th>
+                                <th>MusicGen</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><audio controls><source src="audio/naive_music_etta_1.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_music_sao_1.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_music_musicgen_1.wav" type="audio/wav"></audio></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table style="margin-top: 10px;">
+                        <thead>
+                            <tr>
+                                <th>MAGNeT</th>
+                                <th>AudioLDM</th>
+                                <th>TangoFLUX</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><audio controls><source src="audio/naive_music_magnet_1.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_music_audioldm_1.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_music_tangoflux_1.wav" type="audio/wav"></audio></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- SongDescriber 2 -->
+                <div class="sample">
+                    <p class="description"><strong>Sample 2:</strong> Delicate orchestral music with a magical Christmas feel</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Groundtruth</th>
+                                <th>UALM-Gen</th>
+                                <th>UALM</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><audio controls><source src="audio/naive_music_gt_3.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_music_ualmgen_3.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_music_ualm_3.wav" type="audio/wav"></audio></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table style="margin-top: 10px;">
+                        <thead>
+                            <tr>
+                                <th>ETTA</th>
+                                <th>Stable Audio Open</th>
+                                <th>MusicGen</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><audio controls><source src="audio/naive_music_etta_3.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_music_sao_3.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_music_musicgen_3.wav" type="audio/wav"></audio></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table style="margin-top: 10px;">
+                        <thead>
+                            <tr>
+                                <th>MAGNeT</th>
+                                <th>AudioLDM</th>
+                                <th>TangoFLUX</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><audio controls><source src="audio/naive_music_magnet_3.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_music_audioldm_3.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_music_tangoflux_3.wav" type="audio/wav"></audio></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- SongDescriber 3 -->
+                <div class="sample">
+                    <p class="description"><strong>Sample 3:</strong> Relaxing jazz music with soothing melody that contains brass instruments and various keyboards</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Groundtruth</th>
+                                <th>UALM-Gen</th>
+                                <th>UALM</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><audio controls><source src="audio/naive_music_gt_7.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_music_ualmgen_7.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_music_ualm_7.wav" type="audio/wav"></audio></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table style="margin-top: 10px;">
+                        <thead>
+                            <tr>
+                                <th>ETTA</th>
+                                <th>Stable Audio Open</th>
+                                <th>MusicGen</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><audio controls><source src="audio/naive_music_etta_7.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_music_sao_7.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_music_musicgen_7.wav" type="audio/wav"></audio></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table style="margin-top: 10px;">
+                        <thead>
+                            <tr>
+                                <th>MAGNeT</th>
+                                <th>AudioLDM</th>
+                                <th>TangoFLUX</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><audio controls><source src="audio/naive_music_magnet_7.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_music_audioldm_7.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_music_tangoflux_7.wav" type="audio/wav"></audio></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- SongDescriber 4 -->
+                <div class="sample">
+                    <p class="description"><strong>Sample 4:</strong> A slow paced arty electronic track that features a strange tuned guitar</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Groundtruth</th>
+                                <th>UALM-Gen</th>
+                                <th>UALM</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><audio controls><source src="audio/naive_music_gt_36.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_music_ualmgen_36.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_music_ualm_36.wav" type="audio/wav"></audio></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table style="margin-top: 10px;">
+                        <thead>
+                            <tr>
+                                <th>ETTA</th>
+                                <th>Stable Audio Open</th>
+                                <th>MusicGen</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><audio controls><source src="audio/naive_music_etta_36.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_music_sao_36.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_music_musicgen_36.wav" type="audio/wav"></audio></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table style="margin-top: 10px;">
+                        <thead>
+                            <tr>
+                                <th>MAGNeT</th>
+                                <th>AudioLDM</th>
+                                <th>TangoFLUX</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><audio controls><source src="audio/naive_music_magnet_36.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_music_audioldm_36.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_music_tangoflux_36.wav" type="audio/wav"></audio></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- SongDescriber 5 -->
+                <div class="sample">
+                    <p class="description"><strong>Sample 5:</strong> Contemporary trendy optimistic indie pop, with dirty drums, happy guitar comping and synthesizer solo</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Groundtruth</th>
+                                <th>UALM-Gen</th>
+                                <th>UALM</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><audio controls><source src="audio/naive_music_gt_48.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_music_ualmgen_48.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_music_ualm_48.wav" type="audio/wav"></audio></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table style="margin-top: 10px;">
+                        <thead>
+                            <tr>
+                                <th>ETTA</th>
+                                <th>Stable Audio Open</th>
+                                <th>MusicGen</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><audio controls><source src="audio/naive_music_etta_48.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_music_sao_48.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_music_musicgen_48.wav" type="audio/wav"></audio></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table style="margin-top: 10px;">
+                        <thead>
+                            <tr>
+                                <th>MAGNeT</th>
+                                <th>AudioLDM</th>
+                                <th>TangoFLUX</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><audio controls><source src="audio/naive_music_magnet_48.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_music_audioldm_48.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_music_tangoflux_48.wav" type="audio/wav"></audio></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            
+            <!-- Sound Effect Generation Section -->
+            <section class="section" id="sound-effect-generation">
+                <h2 class="section-title">🔊 (UALM-Gen & UALM) Sound Effect Generation (AudioCaps Dataset)</h2>
+                
+                <!-- AudioCaps 1 -->
+                <div class="sample">
+                    <p class="description"><strong>Sample 1:</strong> A series of rapid gunshots firing alongside footsteps running on concrete as a man groans while a muffled heart beats in the background</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Groundtruth</th>
+                                <th>UALM-Gen</th>
+                                <th>UALM</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><audio controls><source src="audio/naive_audio_gt_9.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_audio_ualmgen_9.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_audio_ualm_9.wav" type="audio/wav"></audio></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table style="margin-top: 10px;">
+                        <thead>
+                            <tr>
+                                <th>ETTA</th>
+                                <th>Stable Audio Open</th>
+                                <th>AudioGen</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><audio controls><source src="audio/naive_audio_etta_9.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_audio_sao_9.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_audio_musicgen_9.wav" type="audio/wav"></audio></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table style="margin-top: 10px;">
+                        <thead>
+                            <tr>
+                                <th>MAGNeT</th>
+                                <th>AudioLDM</th>
+                                <th>TangoFLUX</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><audio controls><source src="audio/naive_audio_magnet_9.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_audio_audioldm_9.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_audio_tangoflux_9.wav" type="audio/wav"></audio></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- AudioCaps 2 -->
+                <div class="sample">
+                    <p class="description"><strong>Sample 2:</strong> A man talking as metal clanks together followed by footsteps on grass as insects buzz in the background</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Groundtruth</th>
+                                <th>UALM-Gen</th>
+                                <th>UALM</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><audio controls><source src="audio/naive_audio_gt_22.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_audio_ualmgen_22.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_audio_ualm_22.wav" type="audio/wav"></audio></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table style="margin-top: 10px;">
+                        <thead>
+                            <tr>
+                                <th>ETTA</th>
+                                <th>Stable Audio Open</th>
+                                <th>AudioGen</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><audio controls><source src="audio/naive_audio_etta_22.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_audio_sao_22.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_audio_musicgen_22.wav" type="audio/wav"></audio></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table style="margin-top: 10px;">
+                        <thead>
+                            <tr>
+                                <th>MAGNeT</th>
+                                <th>AudioLDM</th>
+                                <th>TangoFLUX</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><audio controls><source src="audio/naive_audio_magnet_22.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_audio_audioldm_22.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_audio_tangoflux_22.wav" type="audio/wav"></audio></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- AudioCaps 3 -->
+                <div class="sample">
+                    <p class="description"><strong>Sample 3:</strong> Water lightly splashing as a bird chirps and wind blows into a microphone</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Groundtruth</th>
+                                <th>UALM-Gen</th>
+                                <th>UALM</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><audio controls><source src="audio/naive_audio_gt_24.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_audio_ualmgen_24.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_audio_ualm_24.wav" type="audio/wav"></audio></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table style="margin-top: 10px;">
+                        <thead>
+                            <tr>
+                                <th>ETTA</th>
+                                <th>Stable Audio Open</th>
+                                <th>AudioGen</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><audio controls><source src="audio/naive_audio_etta_24.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_audio_sao_24.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_audio_musicgen_24.wav" type="audio/wav"></audio></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table style="margin-top: 10px;">
+                        <thead>
+                            <tr>
+                                <th>MAGNeT</th>
+                                <th>AudioLDM</th>
+                                <th>TangoFLUX</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><audio controls><source src="audio/naive_audio_magnet_24.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_audio_audioldm_24.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_audio_tangoflux_24.wav" type="audio/wav"></audio></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- AudioCaps 4 -->
+                <div class="sample">
+                    <p class="description"><strong>Sample 4:</strong> An engine running followed by the engine revving and tires screeching</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Groundtruth</th>
+                                <th>UALM-Gen</th>
+                                <th>UALM</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><audio controls><source src="audio/naive_audio_gt_50.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_audio_ualmgen_50.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_audio_ualm_50.wav" type="audio/wav"></audio></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table style="margin-top: 10px;">
+                        <thead>
+                            <tr>
+                                <th>ETTA</th>
+                                <th>Stable Audio Open</th>
+                                <th>AudioGen</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><audio controls><source src="audio/naive_audio_etta_50.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_audio_sao_50.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_audio_musicgen_50.wav" type="audio/wav"></audio></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table style="margin-top: 10px;">
+                        <thead>
+                            <tr>
+                                <th>MAGNeT</th>
+                                <th>AudioLDM</th>
+                                <th>TangoFLUX</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><audio controls><source src="audio/naive_audio_magnet_50.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_audio_audioldm_50.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_audio_tangoflux_50.wav" type="audio/wav"></audio></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- AudioCaps 5 -->
+                <div class="sample">
+                    <p class="description"><strong>Sample 5:</strong> Vibrations from a sewing machine followed by clicks and a man speaking</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Groundtruth</th>
+                                <th>UALM-Gen</th>
+                                <th>UALM</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><audio controls><source src="audio/naive_audio_gt_39.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_audio_ualmgen_39.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_audio_ualm_39.wav" type="audio/wav"></audio></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table style="margin-top: 10px;">
+                        <thead>
+                            <tr>
+                                <th>ETTA</th>
+                                <th>Stable Audio Open</th>
+                                <th>AudioGen</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><audio controls><source src="audio/naive_audio_etta_39.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_audio_sao_39.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_audio_musicgen_39.wav" type="audio/wav"></audio></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table style="margin-top: 10px;">
+                        <thead>
+                            <tr>
+                                <th>MAGNeT</th>
+                                <th>AudioLDM</th>
+                                <th>TangoFLUX</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><audio controls><source src="audio/naive_audio_magnet_39.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_audio_audioldm_39.wav" type="audio/wav"></audio></td>
+                                <td><audio controls><source src="audio/naive_audio_tangoflux_39.wav" type="audio/wav"></audio></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            
+            <!-- Dialogue Generation Section -->
+            <section class="section" id="enrichment-imaginary">
+                <h2 class="section-title">💬 (UALM-R1) Enrichment with Imaginary Prompt</h2>
+                
+                <div class="dialogue-demo">
+                    <div class="dialogue-container">
+                        <div class="message user-message">
+                            <div class="message-header">👤 User</div>
+                            <div class="message-content">
+                                I need a piece of music for a parade scene. It should be high-energy and celebratory, something that really captures the excitement of a street performance.
+                            </div>
+                        </div>
+                        
+                        <div class="message assistant-message">
+                            <div class="message-header">🤖 Assistant</div>
+                            <div class="message-content">
+                                <p>Perfect! I'll create a high-energy parade music track that captures the excitement and celebration of a street performance. The audio will be structured as follows:</p>
+
+                                <p><strong>Music:</strong> The track will feature a festive marching band arrangement with a strong, driving rhythm. This will include brass instruments like trumpets and trombones playing uplifting melodies, creating that classic parade atmosphere.</p>
+
+                                <p><strong>Percussion:</strong> A prominent marching drum section will provide the rhythmic backbone - think snare drums with crisp rolls, booming bass drums marking the beat, and cymbals crashing for dramatic effect.</p>
+
+                                <p><strong>Overall Feel:</strong> The composition will maintain a steady marching tempo throughout, with dynamic crescendos and exciting flourishes that capture the joy and spectacle of a street parade celebration.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="generation-details">
+                            <div class="detail-box">
+                                <h4>📝 Keywords</h4>
+                                <p>Music, Brass instruments, Percussion, Marching band</p>
+                            </div>
+                            
+                            <div class="detail-box">
+                                <h4>🎨 Layout</h4>
+                                <p>The audio will feature an energetic marching band performance with brass instruments playing celebratory melodies over a strong percussion foundation.</p>
+                            </div>
+                            
+                            <div class="detail-box">
+                                <h4>🎵 Description</h4>
+                                <p><strong>Music:</strong> A festive marching band arrangement featuring bright brass instruments playing uplifting, celebratory melodies with a steady marching tempo.</p>
+                                <p><strong>Brass Section:</strong> Trumpets and trombones delivering powerful, joyful harmonies with occasional fanfare flourishes that capture the parade excitement.</p>
+                                <p><strong>Percussion:</strong> Crisp snare drum rolls, steady bass drum beats, and dramatic cymbal crashes creating the classic marching band rhythm that drives the parade forward.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="generated-audio">
+                            <h4>🎧 Generated Audio</h4>
+                            <audio controls>
+                                <source src="audio/imagination_1.wav" type="audio/wav">
+                            </audio>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Example 2 -->
+                <div class="dialogue-demo" style="margin-top: 40px;">
+                    <div class="dialogue-container">
+                        <div class="message user-message">
+                            <div class="message-header">👤 User</div>
+                            <div class="message-content">
+                                I'm working on a scene that needs a very peaceful and relaxing outdoor setting. I want it to evoke a sense of calm and tranquility, like a perfect summer morning in the countryside.
+                            </div>
+                        </div>
+                        
+                        <div class="message assistant-message">
+                            <div class="message-header">🤖 Assistant</div>
+                            <div class="message-content">
+                                <p>Okay, to create that relaxing and tranquil countryside soundscape, I will use these elements:</p>
+                                
+                                <p><strong>1. Ambient Nature:</strong> I'll start with a continuous base layer of a gentle outdoor soundscape. This will create a sense of space and natural quietude to define the environment.</p>
+                                
+                                <p><strong>2. Distinct Bird Chirp:</strong> Layered on top of the ambient sound, I will add a clear, short chirp of a small songbird, appearing briefly.</p>
+                                
+                                <p><strong>3. Insect Hum:</strong> Finally, I will include a low, soft, continuous insect hum, similar to the sound of crickets or cicadas in the distance, to enrich the background ambiance.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="generation-details">
+                            <div class="detail-box">
+                                <h4>📝 Keywords</h4>
+                                <p>Bird chirp, Insect hum, Ambient nature</p>
+                            </div>
+                            
+                            <div class="detail-box">
+                                <h4>🎨 Layout</h4>
+                                <p>The audio will start with the continuous, soft sounds of an ambient nature environment. A distinct bird chirp will occur within this continuous background, followed by a light insect hum.</p>
+                            </div>
+                            
+                            <div class="detail-box">
+                                <h4>🎵 Description</h4>
+                                <p><strong>Bird chirp:</strong> The clear, short, and distinct chirp of a small bird, likely a songbird, appearing briefly.</p>
+                                <p><strong>Insect hum:</strong> A low, soft, and continuous hum, indicative of distant or small insects like crickets or cicadas.</p>
+                                <p><strong>Ambient nature:</strong> A gentle and open outdoor soundscape, with a sense of space and natural quietude.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="generated-audio">
+                            <h4>🎧 Generated Audio</h4>
+                            <audio controls>
+                                <source src="audio/imagination_2.wav" type="audio/wav">
+                            </audio>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Example 3 -->
+                <div class="dialogue-demo" style="margin-top: 40px;">
+                    <div class="dialogue-container">
+                        <div class="message user-message">
+                            <div class="message-header">👤 User</div>
+                            <div class="message-content">
+                                I need an ambient soundscape that evokes a quiet, contemplative mood, perhaps suitable for a scene in a park or garden after a light shower. I want it to feel natural and peaceful, with a hint of mystery or anticipation.
+                            </div>
+                        </div>
+                        
+                        <div class="message assistant-message">
+                            <div class="message-header">🤖 Assistant</div>
+                            <div class="message-content">
+                                <p>Okay, to create that quiet, contemplative, and slightly mysterious mood in a park or garden after a shower, I will structure the audio with the following elements:</p>
+                                
+                                <p><strong>• Rain:</strong> The background will be established with the gentle, continuous sound of light rain falling on various surfaces, providing a soft and consistent ambiance.</p>
+                                
+                                <p><strong>• Footsteps:</strong> Shortly after the rain begins, the sound of soft, rhythmic footsteps will start, suggesting someone is walking slowly on a slightly wet or uneven surface.</p>
+                                
+                                <p><strong>• Rustling:</strong> Simultaneously with the rain and footsteps, I will include a brief, light rustling sound, similar to paper or leaves being gently moved or disturbed.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="generation-details">
+                            <div class="detail-box">
+                                <h4>📝 Keywords</h4>
+                                <p>Rain, Footsteps, Rustling</p>
+                            </div>
+                            
+                            <div class="detail-box">
+                                <h4>🎨 Layout</h4>
+                                <p>The audio will start with the sound of light rain falling, which will continue throughout. Shortly after, the distinct sound of footsteps will begin, followed by a brief rustling sound, all occurring simultaneously with the rain.</p>
+                            </div>
+                            
+                            <div class="detail-box">
+                                <h4>🎵 Description</h4>
+                                <p><strong>Rain:</strong> The gentle, continuous sound of light rain falling on various surfaces, creating a soft, consistent background ambiance.</p>
+                                <p><strong>Footsteps:</strong> The soft, rhythmic sound of footsteps, suggesting someone walking slowly on a slightly wet or uneven surface.</p>
+                                <p><strong>Rustling:</strong> A brief, light rustling sound, like paper or leaves being gently moved or disturbed.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="generated-audio">
+                            <h4>🎧 Generated Audio</h4>
+                            <audio controls>
+                                <source src="audio/imagination_3.wav" type="audio/wav">
+                            </audio>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Example 4 -->
+                <div class="dialogue-demo" style="margin-top: 40px;">
+                    <div class="dialogue-container">
+                        <div class="message user-message">
+                            <div class="message-header">👤 User</div>
+                            <div class="message-content">
+                                I need a calming soundscape for a meditation app. Something that feels peaceful and reflective, almost like a dream.
+                            </div>
+                        </div>
+                        
+                        <div class="message assistant-message">
+                            <div class="message-header">🤖 Assistant</div>
+                            <div class="message-content">
+                                <p>Okay, to create that peaceful and reflective dreamscape, I will structure the audio using the following elements:</p>
+                                
+                                <p><strong>1. Foundation:</strong> The audio will begin with a sustained synth melody. The melody will be smooth and ethereal, with a slightly melancholic tone and a moderate tempo, establishing a tranquil mood.</p>
+                                
+                                <p><strong>2. Layered Elements:</strong></p>
+                                <p><strong>• Bell Sounds:</strong> Concurrent with the synth melody, clear, high-pitched bell or chime sounds will be introduced, adding a layer of sparkle and delicate texture to the overall sound.</p>
+                                <p><strong>• Light Percussion:</strong> To provide a gentle, underlying pulse, I will add subtle, rhythmic percussion. This will likely be a gentle shaker or a light hi-hat, offering a soft, unobtrusive rhythm that supports the meditative atmosphere.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="generation-details">
+                            <div class="detail-box">
+                                <h4>📝 Keywords</h4>
+                                <p>Synth melody, Bell sounds, Light percussion</p>
+                            </div>
+                            
+                            <div class="detail-box">
+                                <h4>🎨 Layout</h4>
+                                <p>The audio will start with a sustained synth melody. Bell sounds will join concurrently, and light percussion will be added to provide a steady rhythm.</p>
+                            </div>
+                            
+                            <div class="detail-box">
+                                <h4>🎵 Description</h4>
+                                <p><strong>Synth melody:</strong> A smooth, ethereal synth melody with a sustained, slightly melancholic tone and a moderate tempo.</p>
+                                <p><strong>Bell sounds:</strong> Clear, high-pitched bell or chime sounds that play alongside the synth, adding sparkle.</p>
+                                <p><strong>Light percussion:</strong> Subtle, rhythmic percussion, possibly a gentle shaker or light hi-hat, providing a soft pulse.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="generated-audio">
+                            <h4>🎧 Generated Audio</h4>
+                            <audio controls>
+                                <source src="audio/imagination_4.wav" type="audio/wav">
+                            </audio>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Example 5 -->
+                <div class="dialogue-demo" style="margin-top: 40px;">
+                    <div class="dialogue-container">
+                        <div class="message user-message">
+                            <div class="message-header">👤 User</div>
+                            <div class="message-content">
+                                I need a piece of music for a parade scene. It should be high-energy and celebratory, something that really captures the excitement of a street performance.
+                            </div>
+                        </div>
+                        
+                        <div class="message assistant-message">
+                            <div class="message-header">🤖 Assistant</div>
+                            <div class="message-content">
+                                <p>Okay, to create that high-energy, celebratory parade music, I will structure the audio as follows:</p>
+                                
+                                <p><strong>Brass Band Music:</strong> The audio will begin with the sound of a lively brass band playing an upbeat, rhythmic melody. The music will feature prominent trumpets and trombones, creating a full and energetic sound.</p>
+                                
+                                <p><strong>Percussion:</strong> Shortly after the brass band music begins, I will introduce the sound of percussion. This will consist of a steady, driving beat, likely from a drum kit, providing a strong rhythmic foundation for the music. The percussion will continue throughout the piece, accompanying the brass band.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="generation-details">
+                            <div class="detail-box">
+                                <h4>📝 Keywords</h4>
+                                <p>Brass band music, Percussion</p>
+                            </div>
+                            
+                            <div class="detail-box">
+                                <h4>🎨 Layout</h4>
+                                <p>The audio will start with the sound of a brass band playing a lively tune. Percussion will join in shortly after, accompanying the brass band throughout.</p>
+                            </div>
+                            
+                            <div class="detail-box">
+                                <h4>🎵 Description</h4>
+                                <p><strong>Brass band music:</strong> The sound of a lively brass band playing an upbeat, rhythmic melody. The music will feature prominent trumpets and trombones, creating a full and energetic sound.</p>
+                                <p><strong>Percussion:</strong> The sound of percussion, likely a drum kit, providing a steady, driving beat that supports the brass band music.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="generated-audio">
+                            <h4>🎧 Generated Audio</h4>
+                            <audio controls>
+                                <source src="audio/imagination_5.wav" type="audio/wav">
+                            </audio>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Example 6 -->
+                <div class="dialogue-demo" style="margin-top: 40px;">
+                    <div class="dialogue-container">
+                        <div class="message user-message">
+                            <div class="message-header">👤 User</div>
+                            <div class="message-content">
+                                I need an audio piece for a theatrical scene, something that builds to a powerful emotional climax. Think grand and sweeping.
+                            </div>
+                        </div>
+                        
+                        <div class="message assistant-message">
+                            <div class="message-header">🤖 Assistant</div>
+                            <div class="message-content">
+                                <p>Okay, to create this grand and emotionally climactic theatrical scene, I will construct the audio as follows:</p>
+                                
+                                <p><strong>1. Orchestral Music:</strong> The piece will begin with building, grand orchestral music. This will be a dramatic soundscape with a strong rhythmic pulse and rising intensity, incorporating elements of brass, strings, and percussion.</p>
+                                
+                                <p><strong>2. Male Singing:</strong> After the orchestral music has established itself, a male voice will begin singing over the continuous music. This will be a clear, powerful male tenor voice, singing in a dramatic, operatic style and with a distinct vibrato.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="generation-details">
+                            <div class="detail-box">
+                                <h4>📝 Keywords</h4>
+                                <p>Orchestral music, Male singing</p>
+                            </div>
+                            
+                            <div class="detail-box">
+                                <h4>🎨 Layout</h4>
+                                <p>The audio will begin with a building orchestral music piece. A male voice will then start singing over the continuous music.</p>
+                            </div>
+                            
+                            <div class="detail-box">
+                                <h4>🎵 Description</h4>
+                                <p><strong>Orchestral music:</strong> The sound of grand, dramatic orchestral music with a strong rhythmic pulse and a rising intensity, including brass, strings, and percussion.</p>
+                                <p><strong>Male singing:</strong> A clear, powerful male tenor voice singing in a dramatic, operatic style, with a distinct vibrato.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="generated-audio">
+                            <h4>🎧 Generated Audio</h4>
+                            <audio controls>
+                                <source src="audio/imagination_6.wav" type="audio/wav">
+                            </audio>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Example 7 -->
+                <div class="dialogue-demo" style="margin-top: 40px;">
+                    <div class="dialogue-container">
+                        <div class="message user-message">
+                            <div class="message-header">👤 User</div>
+                            <div class="message-content">
+                                I'm looking for an audio track that captures the energy of a school playground during recess or a busy public park on a sunny day. It should feel vibrant and full of life.
+                            </div>
+                        </div>
+                        
+                        <div class="message assistant-message">
+                            <div class="message-header">🤖 Assistant</div>
+                            <div class="message-content">
+                                <p>Okay, I will create a vibrant and lively atmosphere by layering distinct audio elements. The overall structure will be as follows:</p>
+                                
+                                <p><strong>1. Children's Voices:</strong> The primary sound element will be the distinct voices of children. These will be a mix of high-pitched, excited, and playful sounds from multiple children, including speech and other playful noises, with some instances of overlapping voices.</p>
+                                
+                                <p><strong>2. Background Crowd Noise:</strong> Layered beneath the children's voices, I will include a continuous, low-level murmur of general crowd noise. This will consist of many people talking and moving in the background, helping to create a lively and populated environment.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="generation-details">
+                            <div class="detail-box">
+                                <h4>📝 Keywords</h4>
+                                <p>Children's voices, Crowd noise</p>
+                            </div>
+                            
+                            <div class="detail-box">
+                                <h4>🎨 Layout</h4>
+                                <p>The audio will feature the distinct sound of children's voices layered over a general background of crowd noise.</p>
+                            </div>
+                            
+                            <div class="detail-box">
+                                <h4>🎵 Description</h4>
+                                <p><strong>Children's voices:</strong> A mix of high-pitched, excited, and playful voices of several children speaking and making sounds, sometimes overlapping.</p>
+                                <p><strong>Crowd noise:</strong> The continuous, low-level murmur of many people talking and moving in a public space, creating a lively atmosphere.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="generated-audio">
+                            <h4>🎧 Generated Audio</h4>
+                            <audio controls>
+                                <source src="audio/imagination_7.wav" type="audio/wav">
+                            </audio>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Example 8 -->
+                <div class="dialogue-demo" style="margin-top: 40px;">
+                    <div class="dialogue-container">
+                        <div class="message user-message">
+                            <div class="message-header">👤 User</div>
+                            <div class="message-content">
+                                I'm working on a podcast segment about the nostalgia of classic video games. I need audio that captures the feeling of friends hanging out and enjoying those old games together.
+                            </div>
+                        </div>
+                        
+                        <div class="message assistant-message">
+                            <div class="message-header">🤖 Assistant</div>
+                            <div class="message-content">
+                                <p>Okay, to capture that feeling of friends enjoying classic video games, I'll combine the following elements:</p>
+                                
+                                <p><strong>• Retro game music:</strong> A cheerful, repetitive, and simple melodic tune, reminiscent of music from old video games, will play continuously in the background, setting the scene.</p>
+                                
+                                <p><strong>• Male speech:</strong> A male voice with a medium pitch and an excited, somewhat animated tone will speak intermittently over the music.</p>
+                                
+                                <p><strong>• Male laughter:</strong> Following the male speech, there will be a short, high-pitched, and very expressive burst of laughter from a man to emphasize the fun and camaraderie.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="generation-details">
+                            <div class="detail-box">
+                                <h4>📝 Keywords</h4>
+                                <p>Retro game music, Male speech, Male laughter</p>
+                            </div>
+                            
+                            <div class="detail-box">
+                                <h4>🎨 Layout</h4>
+                                <p>The audio will feature continuous retro game music. Over this music, a male voice will speak intermittently, followed by a short burst of male laughter.</p>
+                            </div>
+                            
+                            <div class="detail-box">
+                                <h4>🎵 Description</h4>
+                                <p><strong>Retro game music:</strong> A cheerful, repetitive, and simple melodic tune, reminiscent of music from old video games, playing continuously in the background.</p>
+                                <p><strong>Male speech:</strong> A man speaking with a medium pitch and an excited, somewhat animated tone.</p>
+                                <p><strong>Male laughter:</strong> A short, high-pitched, and very expressive burst of laughter from a man.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="generated-audio">
+                            <h4>🎧 Generated Audio</h4>
+                            <audio controls>
+                                <source src="audio/imagination_8.wav" type="audio/wav">
+                            </audio>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Example 9 -->
+                <div class="dialogue-demo" style="margin-top: 40px;">
+                    <div class="dialogue-container">
+                        <div class="message user-message">
+                            <div class="message-header">👤 User</div>
+                            <div class="message-content">
+                                I'm putting together a high-energy advertisement for a new fitness app. I need something with a modern, edgy feel that will really pump people up and get them motivated. Think powerful visuals and a fast-paced narrative.
+                            </div>
+                        </div>
+                        
+                        <div class="message assistant-message">
+                            <div class="message-header">🤖 Assistant</div>
+                            <div class="message-content">
+                                <p>Okay, I will create a soundscape to support your high-energy, edgy fitness app advertisement, focusing on a motivational feel. Here's the audio plan:</p>
+                                
+                                <p><strong>1. Electronic Music:</strong> I will start with driving, uptempo electronic music. This track will feature a strong, repetitive drum beat, prominent synthesizers, and a slightly distorted texture to give it a high-energy feel. The music will be continuous and designed to build in intensity over time.</p>
+                                
+                                <p><strong>2. Male Speech:</strong> A male voice will overlay the electronic music. This voice will have a slightly rough quality and will deliver lines in a rhythmic style, akin to chanting or rapping. The delivery style will be matched to the energy of the music to create a cohesive, motivational experience.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="generation-details">
+                            <div class="detail-box">
+                                <h4>📝 Keywords</h4>
+                                <p>Electronic music, Male speech</p>
+                            </div>
+                            
+                            <div class="detail-box">
+                                <h4>🎨 Layout</h4>
+                                <p>The audio will start with electronic music featuring a driving beat. A male voice will then speak over the continuous music, which gradually increases in intensity.</p>
+                            </div>
+                            
+                            <div class="detail-box">
+                                <h4>🎵 Description</h4>
+                                <p><strong>Electronic music:</strong> Uptempo electronic music with a strong, repetitive drum beat, synthesizers, and a slightly distorted, high-energy feel. The music will build in intensity.</p>
+                                <p><strong>Male speech:</strong> A male voice, slightly rough in quality, will speak in a rhythmic, chanting, or rap-like manner, matching the energy of the music.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="generated-audio">
+                            <h4>🎧 Generated Audio</h4>
+                            <audio controls>
+                                <source src="audio/imagination_9.wav" type="audio/wav">
+                            </audio>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Example 10 -->
+                <div class="dialogue-demo" style="margin-top: 40px;">
+                    <div class="dialogue-container">
+                        <div class="message user-message">
+                            <div class="message-header">👤 User</div>
+                            <div class="message-content">
+                                I'm working on a racing game and need audio for an exciting moment during a race. I want the player to feel the adrenaline and hear the intensity of the competition, with commentary adding to the thrill.
+                            </div>
+                        </div>
+                        
+                        <div class="message assistant-message">
+                            <div class="message-header">🤖 Assistant</div>
+                            <div class="message-content">
+                                <p>Okay, I will generate the audio to convey an exciting moment in a race with accompanying commentary:</p>
+                                
+                                <p><strong>1. Initial Sound Event:</strong> The audio will begin with the prominent sound of a race car engine. This will be a continuous, very loud, high-pitched whine and roar, representing a powerful engine at high speed and performance.</p>
+                                
+                                <p><strong>2. Overlapping Sound Event:</strong> While the race car engine sound continues in the background, a male voice will start speaking. The male speech will consist of a man speaking with an excited, slightly strained voice, likely due to the surrounding noise and his emotion. The pitch of his voice will be medium.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="generation-details">
+                            <div class="detail-box">
+                                <h4>📝 Keywords</h4>
+                                <p>Race car engine, Male speech</p>
+                            </div>
+                            
+                            <div class="detail-box">
+                                <h4>🎨 Layout</h4>
+                                <p>The audio will start with the loud, high-pitched sound of a race car engine. A male voice will then begin speaking, while the race car engine sound continues in the background.</p>
+                            </div>
+                            
+                            <div class="detail-box">
+                                <h4>🎵 Description</h4>
+                                <p><strong>Race car engine:</strong> The continuous, very loud, high-pitched whine and roar of a powerful race car engine, indicating high speed and performance.</p>
+                                <p><strong>Male speech:</strong> A man speaking with an excited, slightly strained voice, likely due to the surrounding noise and his emotion. His pitch is medium.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="generated-audio">
+                            <h4>🎧 Generated Audio</h4>
+                            <audio controls>
+                                <source src="audio/imagination_10.wav" type="audio/wav">
+                            </audio>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Dialogue Section -->
+            <section class="section" id="dialogue">
+                <h2 class="section-title">💬 (UALM-R1) Dialogue</h2>
+
+                <div class="dialogue-demo">
+                    <div class="dialogue-container">
+                        <div class="sample">
+                            <div style="background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                <p style="margin-bottom: 20px;"><strong style="color: #667eea;">👤 User:</strong> I need audio of rock music with audience cheering.</p>
+
+                                <p style="margin-bottom: 20px;"><strong style="color: #48bb78;">🤖 Assistant:</strong> Okay, is there any singing involved, and how is it arranged in the audio?</p>
+
+                                <p style="margin-bottom: 20px;"><strong style="color: #667eea;">👤 User:</strong> Yes, there's group singing within the music. The audience cheering is present concurrently, especially at the end.</p>
+
+                                <p style="margin-bottom: 20px;"><strong style="color: #48bb78;">🤖 Assistant:</strong> Got it. Can you give me more details about the rock music and the singing?</p>
+
+                                <p style="margin-bottom: 20px;"><strong style="color: #667eea;">👤 User:</strong> The rock music is loud and fast-paced with electric guitars. The group singing features multiple male voices in an anthemic style. Now start the audio generation.</p>
+
+                                <p style="margin-bottom: 0;"><strong style="color: #48bb78;">🤖 Assistant:</strong> I'll generate the audio based on your specifications:</p>
+                            </div>
+                        </div>
+
+                        <div class="generation-details">
+                            <div class="detail-box">
+                                <h4>📝 Keywords</h4>
+                                <p>Rock music, Group singing, Audience cheering</p>
+                            </div>
+
+                            <div class="detail-box">
+                                <h4>🎨 Layout</h4>
+                                <p>The audio will feature energetic rock music continuously. Group singing will occur within the music, and the sound of an audience cheering will be present concurrently, especially at the end.</p>
+                            </div>
+
+                            <div class="detail-box">
+                                <h4>🎵 Description</h4>
+                                <p><strong>Rock music:</strong> A loud, fast-paced rock song with a strong beat, prominent electric guitars, and a powerful, driving rhythm.</p>
+                                <p><strong>Group singing:</strong> Multiple male voices singing together in a melodic, anthemic style, with a slightly raw, passionate quality.</p>
+                                <p><strong>Audience cheering:</strong> The enthusiastic sound of a crowd cheering and shouting, indicating an excited live performance atmosphere.</p>
+                            </div>
+                        </div>
+
+                        <div class="generated-audio">
+                            <h4>🎧 Generated Audio</h4>
+                            <audio controls>
+                                <source src="audio/dialogue_1.wav" type="audio/wav">
+                            </audio>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Example 2 -->
+                <div class="dialogue-demo" style="margin-top: 40px;">
+                    <div class="dialogue-container">
+                        <div class="sample">
+                            <div style="background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                <p style="margin-bottom: 20px;"><strong style="color: #667eea;">👤 User:</strong> I need audio of music with someone singing.</p>
+
+                                <p style="margin-bottom: 20px;"><strong style="color: #48bb78;">🤖 Assistant:</strong> What kind of music, and what kind of singing?</p>
+
+                                <p style="margin-bottom: 20px;"><strong style="color: #667eea;">👤 User:</strong> The music should be upbeat and rhythmic, with a clear melody played on guitar and drums. A male voice will be singing along.</p>
+
+                                <p style="margin-bottom: 20px;"><strong style="color: #48bb78;">🤖 Assistant:</strong> Got it. Can you describe the male voice in more detail?</p>
+
+                                <p style="margin-bottom: 20px;"><strong style="color: #667eea;">👤 User:</strong> The male voice sings lyrics in a clear, medium-pitched tone, harmonizing with the instrumental music. Now start the audio generation.</p>
+
+                                <p style="margin-bottom: 0;"><strong style="color: #48bb78;">🤖 Assistant:</strong> I'll generate the audio based on your specifications:</p>
+                            </div>
+                        </div>
+
+                        <div class="generation-details">
+                            <div class="detail-box">
+                                <h4>📝 Keywords</h4>
+                                <p>Music, Male singing</p>
+                            </div>
+
+                            <div class="detail-box">
+                                <h4>🎨 Layout</h4>
+                                <p>The audio will feature continuous music throughout. A male voice will be heard singing along with the music.</p>
+                            </div>
+
+                            <div class="detail-box">
+                                <h4>🎵 Description</h4>
+                                <p><strong>Music:</strong> The sound of upbeat, rhythmic music with a clear melody played on instruments like a guitar and drums. It has a cheerful and consistent tempo.</p>
+                                <p><strong>Male singing:</strong> A male voice singing lyrics in a clear, medium-pitched tone, harmonizing with the instrumental music.</p>
+                            </div>
+                        </div>
+
+                        <div class="generated-audio">
+                            <h4>🎧 Generated Audio</h4>
+                            <audio controls>
+                                <source src="audio/dialogue_2.wav" type="audio/wav">
+                            </audio>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Example 3 -->
+                <div class="dialogue-demo" style="margin-top: 40px;">
+                    <div class="dialogue-container">
+                        <div class="sample">
+                            <div style="background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                <p style="margin-bottom: 20px;"><strong style="color: #667eea;">👤 User:</strong> I need an audio track with acoustic guitar, percussion, and male vocals.</p>
+
+                                <p style="margin-bottom: 20px;"><strong style="color: #48bb78;">🤖 Assistant:</strong> Okay, in what order should these elements appear?</p>
+
+                                <p style="margin-bottom: 20px;"><strong style="color: #667eea;">👤 User:</strong> The guitar starts first, then the percussion joins, and finally the male voice begins singing over both.</p>
+
+                                <p style="margin-bottom: 20px;"><strong style="color: #48bb78;">🤖 Assistant:</strong> Got it. Can you describe the guitar sound in more detail?</p>
+
+                                <p style="margin-bottom: 20px;"><strong style="color: #667eea;">👤 User:</strong> It's a clean, bright acoustic guitar playing a repeating riff. Now start the audio generation.</p>
+
+                                <p style="margin-bottom: 0;"><strong style="color: #48bb78;">🤖 Assistant:</strong> I'll generate the audio based on your specifications:</p>
+                            </div>
+                        </div>
+
+                        <div class="generation-details">
+                            <div class="detail-box">
+                                <h4>📝 Keywords</h4>
+                                <p>Acoustic guitar, Percussion beat, Male singing</p>
+                            </div>
+
+                            <div class="detail-box">
+                                <h4>🎨 Layout</h4>
+                                <p>The audio will start with a clear acoustic guitar melody, quickly joined by a steady, rhythmic percussion beat. A male voice will then begin singing, layered over the continuous music.</p>
+                            </div>
+
+                            <div class="detail-box">
+                                <h4>🎵 Description</h4>
+                                <p><strong>Acoustic guitar:</strong> The sound of a clean, bright acoustic guitar playing a melodic, repeating riff.</p>
+                                <p><strong>Percussion beat:</strong> A regular, driving drum beat, typical of pop or rock music, providing a consistent rhythm.</p>
+                                <p><strong>Male singing:</strong> A male voice singing melodically, with a medium pitch and a clear, slightly energetic tone.</p>
+                            </div>
+                        </div>
+
+                        <div class="generated-audio">
+                            <h4>🎧 Generated Audio</h4>
+                            <audio controls>
+                                <source src="audio/dialogue_3.wav" type="audio/wav">
+                            </audio>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Example 4 -->
+                <div class="dialogue-demo" style="margin-top: 40px;">
+                    <div class="dialogue-container">
+                        <div class="sample">
+                            <div style="background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                <p style="margin-bottom: 20px;"><strong style="color: #667eea;">👤 User:</strong> I need audio of a car engine.</p>
+
+                                <p style="margin-bottom: 20px;"><strong style="color: #48bb78;">🤖 Assistant:</strong> What actions should the engine be performing?</p>
+
+                                <p style="margin-bottom: 20px;"><strong style="color: #667eea;">👤 User:</strong> It needs to crank, start, idle, and rev. Also, there should be a male voice.</p>
+
+                                <p style="margin-bottom: 20px;"><strong style="color: #48bb78;">🤖 Assistant:</strong> Okay. Can you describe the timing of these sounds?</p>
+
+                                <p style="margin-bottom: 20px;"><strong style="color: #667eea;">👤 User:</strong> The engine cranks first, then starts and idles. The male voice speaks while the engine is idling and revving, before it fades out. Now start the audio generation.</p>
+
+                                <p style="margin-bottom: 0;"><strong style="color: #48bb78;">🤖 Assistant:</strong> I'll generate the audio based on your specifications:</p>
+                            </div>
+                        </div>
+
+                        <div class="generation-details">
+                            <div class="detail-box">
+                                <h4>📝 Keywords</h4>
+                                <p>Engine cranking, Engine starting, Engine idling, Engine revving, Male speech</p>
+                            </div>
+
+                            <div class="detail-box">
+                                <h4>🎨 Layout</h4>
+                                <p>The audio will begin with an engine cranking, followed by the engine starting and settling into an idle. A male voice will then speak briefly, while the engine sound continues, occasionally revving before fading out.</p>
+                            </div>
+
+                            <div class="detail-box">
+                                <h4>🎵 Description</h4>
+                                <p><strong>Engine cranking:</strong> The sound of a vehicle engine turning over several times, struggling to start.</p>
+                                <p><strong>Engine starting:</strong> The engine successfully ignites and begins to run.</p>
+                                <p><strong>Engine idling:</strong> The continuous, low rumble of a vehicle engine running steadily.</p>
+                                <p><strong>Engine revving:</strong> The engine's RPMs increasing significantly, then decreasing back to an idle.</p>
+                                <p><strong>Male speech:</strong> A single male voice speaking in a clear, medium-pitched tone, conveying information.</p>
+                            </div>
+                        </div>
+
+                        <div class="generated-audio">
+                            <h4>🎧 Generated Audio</h4>
+                            <audio controls>
+                                <source src="audio/dialogue_4.wav" type="audio/wav">
+                            </audio>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Example 5 -->
+                <div class="dialogue-demo" style="margin-top: 40px;">
+                    <div class="dialogue-container">
+                        <div class="sample">
+                            <div style="background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                <p style="margin-bottom: 20px;"><strong style="color: #667eea;">👤 User:</strong> I need a short audio clip of harmonica music.</p>
+
+                                <p style="margin-bottom: 20px;"><strong style="color: #48bb78;">🤖 Assistant:</strong> Sure! Is there a specific kind of melody you'd like the harmonica to play?</p>
+
+                                <p style="margin-bottom: 20px;"><strong style="color: #667eea;">👤 User:</strong> Yes, it should be a lively melody.</p>
+
+                                <p style="margin-bottom: 20px;"><strong style="color: #48bb78;">🤖 Assistant:</strong> Great! Can you tell me more about the harmonica's sound itself?</p>
+
+                                <p style="margin-bottom: 20px;"><strong style="color: #667eea;">👤 User:</strong> The harmonica should have a warm and slightly breathy quality, playing a clear, bright tune. The melody should be cheerful and upbeat, with quick, flowing notes, creating a joyful atmosphere. Now start the audio generation.</p>
+
+                                <p style="margin-bottom: 0;"><strong style="color: #48bb78;">🤖 Assistant:</strong> I'll generate the audio based on your specifications:</p>
+                            </div>
+                        </div>
+
+                        <div class="generation-details">
+                            <div class="detail-box">
+                                <h4>📝 Keywords</h4>
+                                <p>Harmonica music, Lively melody</p>
+                            </div>
+
+                            <div class="detail-box">
+                                <h4>🎨 Layout</h4>
+                                <p>The audio will feature continuous harmonica music, playing a lively melody throughout the clip.</p>
+                            </div>
+
+                            <div class="detail-box">
+                                <h4>🎵 Description</h4>
+                                <p><strong>Harmonica music:</strong> The sound of a harmonica playing a clear, bright tune. The instrument will have a warm, slightly breathy quality.</p>
+                                <p><strong>Lively melody:</strong> I will generate a cheerful and upbeat melody, characterized by quick, flowing notes, creating a joyful atmosphere.</p>
+                            </div>
+                        </div>
+
+                        <div class="generated-audio">
+                            <h4>🎧 Generated Audio</h4>
+                            <audio controls>
+                                <source src="audio/dialogue_5.wav" type="audio/wav">
+                            </audio>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Example 6 -->
+                <div class="dialogue-demo" style="margin-top: 40px;">
+                    <div class="dialogue-container">
+                        <div class="sample">
+                            <div style="background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                <p style="margin-bottom: 20px;"><strong style="color: #667eea;">👤 User:</strong> I want to generate audio of music playing and a vehicle passing by.</p>
+
+                                <p style="margin-bottom: 20px;"><strong style="color: #48bb78;">🤖 Assistant:</strong> Okay, can you describe the music you want?</p>
+
+                                <p style="margin-bottom: 20px;"><strong style="color: #667eea;">👤 User:</strong> I want electronic music with a strong, repetitive beat, a slightly dark, energetic feel, a clear melody, and a rhythm. Then a vehicle will pass by.</p>
+
+                                <p style="margin-bottom: 20px;"><strong style="color: #48bb78;">🤖 Assistant:</strong> Understood. How does the vehicle sound, and how does it interact with the music?</p>
+
+                                <p style="margin-bottom: 20px;"><strong style="color: #667eea;">👤 User:</strong> The vehicle, likely a car or truck, passes quickly from left to right with a distinct engine rumble and tire noise. It briefly pauses or overlaps with the music. Then the music continues. Now start the audio generation.</p>
+
+                                <p style="margin-bottom: 0;"><strong style="color: #48bb78;">🤖 Assistant:</strong> I'll generate the audio based on your specifications:</p>
+                            </div>
+                        </div>
+
+                        <div class="generation-details">
+                            <div class="detail-box">
+                                <h4>📝 Keywords</h4>
+                                <p>Music, Vehicle passing</p>
+                            </div>
+
+                            <div class="detail-box">
+                                <h4>🎨 Layout</h4>
+                                <p>The audio will start with music playing. A vehicle will then pass by, causing a brief pause or overlay with the music, and then the music will continue.</p>
+                            </div>
+
+                            <div class="detail-box">
+                                <h4>🎵 Description</h4>
+                                <p><strong>Music:</strong> I will generate electronic music with a strong, repetitive beat and a slightly dark, energetic feel. The music will have a clear melody and rhythm.</p>
+                                <p><strong>Vehicle passing:</strong> The sound of a vehicle, likely a car or truck, passing quickly from left to right with a distinct engine rumble and tire noise.</p>
+                            </div>
+                        </div>
+
+                        <div class="generated-audio">
+                            <h4>🎧 Generated Audio</h4>
+                            <audio controls>
+                                <source src="audio/dialogue_6.wav" type="audio/wav">
+                            </audio>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Example 7 -->
+                <div class="dialogue-demo" style="margin-top: 40px;">
+                    <div class="dialogue-container">
+                        <div class="sample">
+                            <div style="background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                <p style="margin-bottom: 20px;"><strong style="color: #667eea;">👤 User:</strong> I need the sound of someone walking.</p>
+
+                                <p style="margin-bottom: 20px;"><strong style="color: #48bb78;">🤖 Assistant:</strong> What surface are they walking on?</p>
+
+                                <p style="margin-bottom: 20px;"><strong style="color: #667eea;">👤 User:</strong> They are walking on gravel. Now start the audio generation.</p>
+
+                                <p style="margin-bottom: 0;"><strong style="color: #48bb78;">🤖 Assistant:</strong> I'll generate the audio based on your specifications:</p>
+                            </div>
+                        </div>
+
+                        <div class="generation-details">
+                            <div class="detail-box">
+                                <h4>📝 Keywords</h4>
+                                <p>Footsteps, Gravel</p>
+                            </div>
+
+                            <div class="detail-box">
+                                <h4>🎨 Layout</h4>
+                                <p>The audio will continuously feature the sound of footsteps walking on a gravel surface.</p>
+                            </div>
+
+                            <div class="detail-box">
+                                <h4>🎵 Description</h4>
+                                <p><strong>Footsteps:</strong> I will generate the sound of steady, rhythmic footsteps, suggesting a person walking at a moderate pace.</p>
+                                <p><strong>Gravel:</strong> The distinct, crisp crunching sound of small, loose stones underfoot, indicating a gravel path or surface.</p>
+                            </div>
+                        </div>
+
+                        <div class="generated-audio">
+                            <h4>🎧 Generated Audio</h4>
+                            <audio controls>
+                                <source src="audio/dialogue_7.wav" type="audio/wav">
+                            </audio>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Example 8 -->
+                <div class="dialogue-demo" style="margin-top: 40px;">
+                    <div class="dialogue-container">
+                        <div class="sample">
+                            <div style="background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                <p style="margin-bottom: 20px;"><strong style="color: #667eea;">👤 User:</strong> I need an audio scene with human speech and engine sounds.</p>
+
+                                <p style="margin-bottom: 20px;"><strong style="color: #48bb78;">🤖 Assistant:</strong> What kind of human speech and engine sounds are you looking for?</p>
+
+                                <p style="margin-bottom: 20px;"><strong style="color: #667eea;">👤 User:</strong> I want multiple male voices, talking in a conversational tone, and a consistent engine hum. Also, a vehicle should pass by towards the end.</p>
+
+                                <p style="margin-bottom: 20px;"><strong style="color: #48bb78;">🤖 Assistant:</strong> Got it. Could you describe the passing vehicle sound in more detail?</p>
+
+                                <p style="margin-bottom: 20px;"><strong style="color: #667eea;">👤 User:</strong> It should have the distinct sound of an engine accelerating and quickly passing by, causing a brief, louder roar. Now start the audio generation.</p>
+
+                                <p style="margin-bottom: 0;"><strong style="color: #48bb78;">🤖 Assistant:</strong> I'll generate the audio based on your specifications:</p>
+                            </div>
+                        </div>
+
+                        <div class="generation-details">
+                            <div class="detail-box">
+                                <h4>📝 Keywords</h4>
+                                <p>Human speech, Engine hum, Vehicle passing</p>
+                            </div>
+
+                            <div class="detail-box">
+                                <h4>🎨 Layout</h4>
+                                <p>The audio will start with the sound of human speech, which will be accompanied by a continuous engine hum. Towards the end, a vehicle will pass by with a distinct engine sound.</p>
+                            </div>
+
+                            <div class="detail-box">
+                                <h4>🎵 Description</h4>
+                                <p><strong>Human speech:</strong> Multiple male voices speaking, with a conversational, sometimes excited, tone. Their pitch is generally in the medium range.</p>
+                                <p><strong>Engine hum:</strong> A low, steady rumble of an engine, consistent throughout most of the clip, suggesting a vehicle is idling or moving slowly in the background.</p>
+                                <p><strong>Vehicle passing:</strong> The distinct sound of an engine accelerating and a vehicle quickly passing by, causing a brief, louder roar.</p>
+                            </div>
+                        </div>
+
+                        <div class="generated-audio">
+                            <h4>🎧 Generated Audio</h4>
+                            <audio controls>
+                                <source src="audio/dialogue_8.wav" type="audio/wav">
+                            </audio>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Example 9 -->
+                <div class="dialogue-demo" style="margin-top: 40px;">
+                    <div class="dialogue-container">
+                        <div class="sample">
+                            <div style="background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                <p style="margin-bottom: 20px;"><strong style="color: #667eea;">👤 User:</strong> I need an audio track with bird calls and some background noise.</p>
+
+                                <p style="margin-bottom: 20px;"><strong style="color: #48bb78;">🤖 Assistant:</strong> What kind of background noise would you like?</p>
+
+                                <p style="margin-bottom: 20px;"><strong style="color: #667eea;">👤 User:</strong> I want it to be the sound of distant traffic, very faint and steady. The bird calls should be continuous.</p>
+
+                                <p style="margin-bottom: 20px;"><strong style="color: #48bb78;">🤖 Assistant:</strong> Understood. Can you describe the bird calls in more detail?</p>
+
+                                <p style="margin-bottom: 20px;"><strong style="color: #667eea;">👤 User:</strong> They should sound like multiple small birds, with high-pitched chirps and melodic tweets, like various bird songs. Now start the audio generation.</p>
+
+                                <p style="margin-bottom: 0;"><strong style="color: #48bb78;">🤖 Assistant:</strong> I'll generate the audio based on your specifications:</p>
+                            </div>
+                        </div>
+
+                        <div class="generation-details">
+                            <div class="detail-box">
+                                <h4>📝 Keywords</h4>
+                                <p>Bird calls, Distant traffic</p>
+                            </div>
+
+                            <div class="detail-box">
+                                <h4>🎨 Layout</h4>
+                                <p>The audio will feature the continuous sound of bird calls, with a faint, steady hum of distant traffic present throughout.</p>
+                            </div>
+
+                            <div class="detail-box">
+                                <h4>🎵 Description</h4>
+                                <p><strong>Bird calls:</strong> I will generate the sound of multiple small birds making high-pitched chirps and melodic tweets, resembling various bird songs.</p>
+                                <p><strong>Distant traffic:</strong> I will generate a very low, consistent rumble of vehicles from a far distance, blending into the background.</p>
+                            </div>
+                        </div>
+
+                        <div class="generated-audio">
+                            <h4>🎧 Generated Audio</h4>
+                            <audio controls>
+                                <source src="audio/dialogue_9.wav" type="audio/wav">
+                            </audio>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Example 10 -->
+                <div class="dialogue-demo" style="margin-top: 40px;">
+                    <div class="dialogue-container">
+                        <div class="sample">
+                            <div style="background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                <p style="margin-bottom: 20px;"><strong style="color: #667eea;">👤 User:</strong> I want some audio of a musical piece.</p>
+
+                                <p style="margin-bottom: 20px;"><strong style="color: #48bb78;">🤖 Assistant:</strong> What instruments are involved and what are their roles?</p>
+
+                                <p style="margin-bottom: 20px;"><strong style="color: #667eea;">👤 User:</strong> It features a plucked string instrument playing a melody, a wind instrument joining in with its own melody, and some subtle percussion.</p>
+
+                                <p style="margin-bottom: 20px;"><strong style="color: #48bb78;">🤖 Assistant:</strong> Got it. Could you describe the sound of each instrument?</p>
+
+                                <p style="margin-bottom: 20px;"><strong style="color: #667eea;">👤 User:</strong> The plucked string is bright and gentle, like a guitar. The wind instrument sounds airy and smooth, like a pan flute. The percussion is light and rhythmic, almost like shakers. Now start the audio generation.</p>
+
+                                <p style="margin-bottom: 0;"><strong style="color: #48bb78;">🤖 Assistant:</strong> I'll generate the audio based on your specifications:</p>
+                            </div>
+                        </div>
+
+                        <div class="generation-details">
+                            <div class="detail-box">
+                                <h4>📝 Keywords</h4>
+                                <p>Plucked string melody, Wind instrument melody, Percussion</p>
+                            </div>
+
+                            <div class="detail-box">
+                                <h4>🎨 Layout</h4>
+                                <p>The audio will start with a plucked string instrument playing a melody. A wind instrument will then join in, playing its own melody over the continuous string sound. Light percussion will accompany both instruments throughout the piece.</p>
+                            </div>
+
+                            <div class="detail-box">
+                                <h4>🎵 Description</h4>
+                                <p><strong>Plucked string melody:</strong> The clear, bright sound of a plucked string instrument, like an acoustic guitar or ukulele, playing a gentle, flowing melody.</p>
+                                <p><strong>Wind instrument melody:</strong> A smooth, airy melody played by a woodwind instrument, possibly a pan flute, with a distinct, breathy tone, harmonizing with the strings.</p>
+                                <p><strong>Percussion:</strong> The subtle, rhythmic sound of light percussion, providing a steady, gentle beat with a shakers-like quality.</p>
+                            </div>
+                        </div>
+
+                        <div class="generated-audio">
+                            <h4>🎧 Generated Audio</h4>
+                            <audio controls>
+                                <source src="audio/dialogue_10.wav" type="audio/wav">
+                            </audio>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Self-Reflection Section -->
+            <section class="section" id="self-reflection">
+                <h2 class="section-title">🔄 (UALM-R1) Self-Reflection</h2>
+
+                <!-- Example 1 -->
+                <div class="dialogue-demo">
+                    <div class="dialogue-container">
+                        <div class="sample">
+                            <div style="background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                <p style="margin-bottom: 20px;"><strong style="color: #667eea;">👤 User:</strong> Electronic drone with rhythmic pulsing changes.</p>
+
+                                <p style="margin-bottom: 20px;"><strong style="color: #48bb78;">🤖 Assistant (Initial Generation):</strong> I'll generate an electronic drone with rhythmic pulsing changes.</p>
+                            </div>
+                        </div>
+
+                        <div class="generation-details">
+                            <div class="detail-box">
+                                <h4>📝 Keywords</h4>
+                                <p>Electronic drone, Pulsing changes</p>
+                            </div>
+
+                            <div class="detail-box">
+                                <h4>🎨 Layout</h4>
+                                <p>The audio will feature a continuous electronic drone that undergoes rhythmic pulsing changes in its sound qualities.</p>
+                            </div>
+
+                            <div class="detail-box">
+                                <h4>🎵 Description</h4>
+                                <p><strong>Electronic drone:</strong> I will generate a sustained, low-to-mid frequency electronic hum, resembling a musical synth pad. It will have a slightly hollow, ethereal quality.</p>
+                                <p><strong>Pulsing changes:</strong> Over the continuous drone, I will introduce a rhythmic, almost 'wobbling' or 'pulsing' effect, where the drone's texture and possibly its volume or filter sweep gently and consistently change, creating a sense of movement without distinct breaks.</p>
+                            </div>
+                        </div>
+
+                        <div class="generated-audio">
+                            <h4>🎧 Initial Generated Audio</h4>
+                            <audio controls>
+                                <source src="audio/self_reflection_1_intermediate.wav" type="audio/wav">
+                            </audio>
+                        </div>
+
+                        <div style="margin-top: 30px;">
+                            <h4 style="color: #764ba2; margin-bottom: 20px;">🔍 Self-Analysis of Generated Audio</h4>
+
+                            <div class="generation-details">
+                                <div class="detail-box">
+                                    <h4>📝 Keywords</h4>
+                                    <p>Electronic music, Rhythmic pulse</p>
+                                </div>
+
+                                <div class="detail-box">
+                                    <h4>🎨 Layout</h4>
+                                    <p>The audio will continuously feature electronic music with a prominent rhythmic pulse throughout its duration.</p>
+                                </div>
+
+                                <div class="detail-box">
+                                    <h4>🎵 Description</h4>
+                                    <p><strong>Electronic music:</strong> I will generate a sustained, atmospheric electronic music sound, characterized by a smooth, evolving tone.</p>
+                                    <p><strong>Rhythmic pulse:</strong> A clear, steady, medium-speed rhythmic pulse will be present, providing a consistent beat to the electronic music.</p>
+                                </div>
+                            </div>
+
+                            <div class="sample" style="margin-top: 20px;">
+                                <div style="background: #ffe5e5; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                    <h4 style="color: #e53e3e; margin-bottom: 15px;">📝 Critique</h4>
+                                    <p>The generated audio has a prominent rhythmic pulse separate from the electronic music. It should be corrected to have the electronic drone itself undergo rhythmic pulsing changes in its sound qualities, such as texture, volume, or filter sweep.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="generated-audio">
+                            <h4>🎧 Final Refined Audio</h4>
+                            <audio controls>
+                                <source src="audio/self_reflection_1.wav" type="audio/wav">
+                            </audio>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Example 2 -->
+                <div class="dialogue-demo" style="margin-top: 40px;">
+                    <div class="dialogue-container">
+                        <div class="sample">
+                            <div style="background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                <p style="margin-bottom: 20px;"><strong style="color: #667eea;">👤 User:</strong> Chaotic and rapid ringing of large metallic bells.</p>
+
+                                <p style="margin-bottom: 20px;"><strong style="color: #48bb78;">🤖 Assistant (Initial Generation):</strong> I'll generate chaotic and rapid ringing of large metallic bells.</p>
+                            </div>
+                        </div>
+
+                        <div class="generation-details">
+                            <div class="detail-box">
+                                <h4>📝 Keywords</h4>
+                                <p>Bells</p>
+                            </div>
+
+                            <div class="detail-box">
+                                <h4>🎨 Layout</h4>
+                                <p>The audio will consist solely of the continuous sound of bells ringing.</p>
+                            </div>
+
+                            <div class="detail-box">
+                                <h4>🎵 Description</h4>
+                                <p><strong>Bells:</strong> I will generate the sound of multiple large, metallic bells ringing rapidly and chaotically, creating a sustained, resonant, and somewhat clanging musical texture.</p>
+                            </div>
+                        </div>
+
+                        <div class="generated-audio">
+                            <h4>🎧 Initial Generated Audio</h4>
+                            <audio controls>
+                                <source src="audio/self_reflection_2_intermediate.wav" type="audio/wav">
+                            </audio>
+                        </div>
+
+                        <div style="margin-top: 30px;">
+                            <h4 style="color: #764ba2; margin-bottom: 20px;">🔍 Self-Analysis of Generated Audio</h4>
+
+                            <div class="generation-details">
+                                <div class="detail-box">
+                                    <h4>📝 Keywords</h4>
+                                    <p>Bells ringing</p>
+                                </div>
+
+                                <div class="detail-box">
+                                    <h4>🎨 Layout</h4>
+                                    <p>The audio will feature a continuous sound of bells ringing throughout.</p>
+                                </div>
+
+                                <div class="detail-box">
+                                    <h4>🎵 Description</h4>
+                                    <p><strong>Bells ringing:</strong> I will generate the clear, melodic sound of multiple metal bells, possibly church bells, ringing in a distinct, harmonious pattern.</p>
+                                </div>
+                            </div>
+
+                            <div class="sample" style="margin-top: 20px;">
+                                <div style="background: #ffe5e5; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                    <h4 style="color: #e53e3e; margin-bottom: 15px;">📝 Critique</h4>
+                                    <p>The generated audio has bells ringing in a distinct, harmonious pattern. It should be corrected to have bells ringing rapidly and chaotically, creating a sustained, resonant, and somewhat clanging musical texture.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="generated-audio">
+                            <h4>🎧 Final Refined Audio</h4>
+                            <audio controls>
+                                <source src="audio/self_reflection_2.wav" type="audio/wav">
+                            </audio>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Example 3 -->
+                <div class="dialogue-demo" style="margin-top: 40px;">
+                    <div class="dialogue-container">
+                        <div class="sample">
+                            <div style="background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                <p style="margin-bottom: 20px;"><strong style="color: #667eea;">👤 User:</strong> Insect buzzing loudly, like a fly flying close by.</p>
+
+                                <p style="margin-bottom: 20px;"><strong style="color: #48bb78;">🤖 Assistant (Initial Generation):</strong> I'll generate the sound of an insect buzzing loudly, like a fly flying close by.</p>
+                            </div>
+                        </div>
+
+                        <div class="generation-details">
+                            <div class="detail-box">
+                                <h4>📝 Keywords</h4>
+                                <p>Insect buzzing</p>
+                            </div>
+
+                            <div class="detail-box">
+                                <h4>🎨 Layout</h4>
+                                <p>The audio will feature the continuous sound of an insect buzzing throughout the clip.</p>
+                            </div>
+
+                            <div class="detail-box">
+                                <h4>🎵 Description</h4>
+                                <p><strong>Insect buzzing:</strong> I will generate the sound of a large insect, like a fly, buzzing loudly and flying close by, with distinct wing flaps and a sustained, vibrant hum.</p>
+                            </div>
+                        </div>
+
+                        <div class="generated-audio">
+                            <h4>🎧 Initial Generated Audio</h4>
+                            <audio controls>
+                                <source src="audio/self_reflection_3_intermediate.wav" type="audio/wav">
+                            </audio>
+                        </div>
+
+                        <div style="margin-top: 30px;">
+                            <h4 style="color: #764ba2; margin-bottom: 20px;">🔍 Self-Analysis of Generated Audio</h4>
+
+                            <div class="generation-details">
+                                <div class="detail-box">
+                                    <h4>📝 Keywords</h4>
+                                    <p>Insect buzzing</p>
+                                </div>
+
+                                <div class="detail-box">
+                                    <h4>🎨 Layout</h4>
+                                    <p>I will generate a continuous sound of an insect buzzing from beginning to end.</p>
+                                </div>
+
+                                <div class="detail-box">
+                                    <h4>🎵 Description</h4>
+                                    <p><strong>Insect buzzing:</strong> The continuous, high-pitched hum of multiple flying insects, creating a steady, slightly fluctuating buzzing sound.</p>
+                                </div>
+                            </div>
+
+                            <div class="sample" style="margin-top: 20px;">
+                                <div style="background: #ffe5e5; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                    <h4 style="color: #e53e3e; margin-bottom: 15px;">📝 Critique</h4>
+                                    <p>The generated audio has the sound of multiple flying insects buzzing. It should be corrected to have the sound of a single large insect, like a fly, buzzing loudly and flying close by, with distinct wing flaps and a sustained, vibrant hum.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="generated-audio">
+                            <h4>🎧 Final Refined Audio</h4>
+                            <audio controls>
+                                <source src="audio/self_reflection_3.wav" type="audio/wav">
+                            </audio>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Example 4 -->
+                <div class="dialogue-demo" style="margin-top: 40px;">
+                    <div class="dialogue-container">
+                        <div class="sample">
+                            <div style="background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                <p style="margin-bottom: 20px;"><strong style="color: #667eea;">👤 User:</strong> Female speech with keyboard typing in the background.</p>
+
+                                <p style="margin-bottom: 20px;"><strong style="color: #48bb78;">🤖 Assistant (Initial Generation):</strong> I'll generate female speech with keyboard typing in the background.</p>
+                            </div>
+                        </div>
+
+                        <div class="generation-details">
+                            <div class="detail-box">
+                                <h4>📝 Keywords</h4>
+                                <p>Female speech, Keyboard typing</p>
+                            </div>
+
+                            <div class="detail-box">
+                                <h4>🎨 Layout</h4>
+                                <p>The audio will feature a female voice speaking continuously, with the sound of keyboard typing happening concurrently in the background.</p>
+                            </div>
+
+                            <div class="detail-box">
+                                <h4>🎵 Description</h4>
+                                <p><strong>Female speech:</strong> A young female voice speaking at a moderate pace in a conversational and slightly earnest tone.</p>
+                                <p><strong>Keyboard typing:</strong> The sound of individual keys being pressed on a computer keyboard, creating light, distinct clicks.</p>
+                            </div>
+                        </div>
+
+                        <div class="generated-audio">
+                            <h4>🎧 Initial Generated Audio</h4>
+                            <audio controls>
+                                <source src="audio/self_reflection_4_intermediate.wav" type="audio/wav">
+                            </audio>
+                        </div>
+
+                        <div style="margin-top: 30px;">
+                            <h4 style="color: #764ba2; margin-bottom: 20px;">🔍 Self-Analysis of Generated Audio</h4>
+
+                            <div class="generation-details">
+                                <div class="detail-box">
+                                    <h4>📝 Keywords</h4>
+                                    <p>Keyboard typing, Female speech</p>
+                                </div>
+
+                                <div class="detail-box">
+                                    <h4>🎨 Layout</h4>
+                                    <p>The audio will feature the distinct sound of keyboard typing, which will be consistently present. A female voice will speak intermittently over the typing sounds.</p>
+                                </div>
+
+                                <div class="detail-box">
+                                    <h4>🎵 Description</h4>
+                                    <p><strong>Keyboard typing:</strong> The crisp, regular sound of mechanical keyboard keys being pressed at a moderate pace, suggesting active typing.</p>
+                                    <p><strong>Female speech:</strong> A soft, calm female voice speaking in a low to medium pitch, with a clear and steady rhythm, as if reading or dictating.</p>
+                                </div>
+                            </div>
+
+                            <div class="sample" style="margin-top: 20px;">
+                                <div style="background: #ffe5e5; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                    <h4 style="color: #e53e3e; margin-bottom: 15px;">📝 Critique</h4>
+                                    <p>The generated audio has intermittent female speech over consistent keyboard typing. It should be corrected to have continuous female speech with keyboard typing in the background.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="generated-audio">
+                            <h4>🎧 Final Refined Audio</h4>
+                            <audio controls>
+                                <source src="audio/self_reflection_4.wav" type="audio/wav">
+                            </audio>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Example 5 -->
+                <div class="dialogue-demo" style="margin-top: 40px;">
+                    <div class="dialogue-container">
+                        <div class="sample">
+                            <div style="background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                <p style="margin-bottom: 20px;"><strong style="color: #667eea;">👤 User:</strong> Fast wind with a car passing quickly.</p>
+
+                                <p style="margin-bottom: 20px;"><strong style="color: #48bb78;">🤖 Assistant (Initial Generation):</strong> I'll generate the sound of fast wind with a car passing quickly.</p>
+                            </div>
+                        </div>
+
+                        <div class="generation-details">
+                            <div class="detail-box">
+                                <h4>📝 Keywords</h4>
+                                <p>Fast wind, Car passing</p>
+                            </div>
+
+                            <div class="detail-box">
+                                <h4>🎨 Layout</h4>
+                                <p>The audio will begin with the strong sound of fast wind. As the wind continues, a car will quickly pass by, contributing to the overall sense of movement and speed.</p>
+                            </div>
+
+                            <div class="detail-box">
+                                <h4>🎵 Description</h4>
+                                <p><strong>Fast wind:</strong> I will generate the sound of strong, gusty wind with a distinct whooshing quality, suggesting high speed and pressure.</p>
+                                <p><strong>Car passing:</strong> The sound of a car quickly moving past the listener, characterized by a brief, low-pitched engine rumble and tire noise that rapidly approaches and then recedes.</p>
+                            </div>
+                        </div>
+
+                        <div class="generated-audio">
+                            <h4>🎧 Initial Generated Audio</h4>
+                            <audio controls>
+                                <source src="audio/self_reflection_5_intermediate.wav" type="audio/wav">
+                            </audio>
+                        </div>
+
+                        <div style="margin-top: 30px;">
+                            <h4 style="color: #764ba2; margin-bottom: 20px;">🔍 Self-Analysis of Generated Audio</h4>
+
+                            <div class="generation-details">
+                                <div class="detail-box">
+                                    <h4>📝 Keywords</h4>
+                                    <p>Car pass-by, Tire screech</p>
+                                </div>
+
+                                <div class="detail-box">
+                                    <h4>🎨 Layout</h4>
+                                    <p>The audio will begin with a car accelerating rapidly. A sharp tire screech will occur shortly after, as the car passes by at high speed.</p>
+                                </div>
+
+                                <div class="detail-box">
+                                    <h4>🎵 Description</h4>
+                                    <p><strong>Car pass-by:</strong> I will generate the sound of a powerful car engine, starting from a moderate hum, then rapidly accelerating and passing by quickly with a rising and falling pitch.</p>
+                                    <p><strong>Tire screech:</strong> I will generate a distinct, high-pitched screeching sound, characteristic of tires skidding or turning sharply on pavement.</p>
+                                </div>
+                            </div>
+
+                            <div class="sample" style="margin-top: 20px;">
+                                <div style="background: #ffe5e5; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                    <h4 style="color: #e53e3e; margin-bottom: 15px;">📝 Critique</h4>
+                                    <p>The generated audio has a tire screech. It should be corrected to have the sound of fast wind at the beginning of the audio. The car passing should also be characterized by a brief, low-pitched engine rumble and tire noise that rapidly approaches and then recedes, instead of a tire screech.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="generated-audio">
+                            <h4>🎧 Final Refined Audio</h4>
+                            <audio controls>
+                                <source src="audio/self_reflection_5.wav" type="audio/wav">
+                            </audio>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Audio Generation Controllability Section -->
+            <section class="section" id="controllability">
+                <h2 class="section-title">🎛️ (UALM-R1) Audio Generation Controllability</h2>
+
+                <!-- Group 1: Quantity and Spatial Control -->
+                <div class="sample">
+                    <h3 style="color: #764ba2; margin-bottom: 20px;">Group 1: Quantity and Spatial Control</h3>
+                    <p style="margin-bottom: 25px; color: #666;">Demonstrating control over the number of sound sources and their spatial distance.</p>
+
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                        <!-- Audio 1 -->
+                        <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <h4 style="color: #667eea; margin-bottom: 15px;">🐕 Multiple Sources</h4>
+                            <p style="margin-bottom: 15px; font-style: italic; color: #555;">"Many dogs bark"</p>
+                            <audio controls style="width: 100%;">
+                                <source src="audio/demo_1.wav" type="audio/wav">
+                                Your browser does not support the audio element.
+                            </audio>
+                        </div>
+
+                        <!-- Audio 2 -->
+                        <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <h4 style="color: #667eea; margin-bottom: 15px;">🐕 Single Source</h4>
+                            <p style="margin-bottom: 15px; font-style: italic; color: #555;">"A dog barks"</p>
+                            <audio controls style="width: 100%;">
+                                <source src="audio/demo_2.wav" type="audio/wav">
+                                Your browser does not support the audio element.
+                            </audio>
+                        </div>
+
+                        <!-- Audio 3 -->
+                        <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <h4 style="color: #667eea; margin-bottom: 15px;">🐕 Distant Source</h4>
+                            <p style="margin-bottom: 15px; font-style: italic; color: #555;">"A dog barks in the far distance"</p>
+                            <audio controls style="width: 100%;">
+                                <source src="audio/demo_3.wav" type="audio/wav">
+                                Your browser does not support the audio element.
+                            </audio>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Group 2: Temporal Ordering Control -->
+                <div class="sample">
+                    <h3 style="color: #764ba2; margin-bottom: 20px;">Group 2: Temporal Ordering Control</h3>
+                    <p style="margin-bottom: 25px; color: #666;">Demonstrating control over the temporal sequence of different sound events.</p>
+
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px;">
+                        <!-- Audio 4 -->
+                        <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <h4 style="color: #667eea; margin-bottom: 15px;">👏 Applause First</h4>
+                            <p style="margin-bottom: 15px; font-style: italic; color: #555;">"Applause and a male singing voice. Applause is heard earlier"</p>
+                            <audio controls style="width: 100%;">
+                                <source src="audio/demo_4.wav" type="audio/wav">
+                                Your browser does not support the audio element.
+                            </audio>
+                        </div>
+
+                        <!-- Audio 5 -->
+                        <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <h4 style="color: #667eea; margin-bottom: 15px;">💧 Water First, Speech Later</h4>
+                            <p style="margin-bottom: 15px; font-style: italic; color: #555;">"Water sound and female speech. Speech is heard later"</p>
+                            <audio controls style="width: 100%;">
+                                <source src="audio/demo_5.wav" type="audio/wav">
+                                Your browser does not support the audio element.
+                            </audio>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Group 3: Recording Quality Control -->
+                <div class="sample">
+                    <h3 style="color: #764ba2; margin-bottom: 20px;">Group 3: Recording Quality Control</h3>
+                    <p style="margin-bottom: 25px; color: #666;">Demonstrating control over the recording quality and fidelity of the generated audio.</p>
+
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px;">
+                        <!-- Audio 6 -->
+                        <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <h4 style="color: #667eea; margin-bottom: 15px;">✨ High-Quality Recording</h4>
+                            <p style="margin-bottom: 15px; font-style: italic; color: #555;">"High-quality female singing voice"</p>
+                            <audio controls style="width: 100%;">
+                                <source src="audio/demo_6.wav" type="audio/wav">
+                                Your browser does not support the audio element.
+                            </audio>
+                        </div>
+
+                        <!-- Audio 7 -->
+                        <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <h4 style="color: #667eea; margin-bottom: 15px;">📻 Low-Quality Recording</h4>
+                            <p style="margin-bottom: 15px; font-style: italic; color: #555;">"Female singing voice from a bad recording device"</p>
+                            <audio controls style="width: 100%;">
+                                <source src="audio/demo_7.wav" type="audio/wav">
+                                Your browser does not support the audio element.
+                            </audio>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Audio Understanding Reasoning (MMAR) Section -->
+            <section class="section" id="audio-reasoning">
+                <h2 class="section-title">🎧 (UALM-R1) Audio Understanding Reasoning (MMAR)</h2>
+
+                <!-- Example 1 -->
+                <div class="sample">
+                    <h3 style="color: #764ba2; margin-bottom: 20px;">Example 1: Transport Scenario</h3>
+
+                    <div style="margin-bottom: 25px;">
+                        <h4 style="color: #667eea; margin-bottom: 15px;">🎵 Audio Input</h4>
+                        <audio controls style="width: 100%;">
+                            <source src="audio/mmar_1.wav" type="audio/wav">
+                            Your browser does not support the audio element.
+                        </audio>
+                    </div>
+
+                    <div style="background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <p style="margin-bottom: 20px;"><strong style="color: #667eea;">👤 User:</strong> In what scenario does this sound occur? Choose the correct option from the following options: (A) On a plane (B) On a ship (C) In a car (D) On a train.</p>
+                        <p><strong style="color: #48bb78;">🤖 Assistant:</strong> The presence of mechanical sounds, the mention of landing, and the statement about heading back to the gate suggest that the audio is from a vehicle that experiences mechanical issues. The context points to a plane, as it is the most common mode of transport where such issues would lead to a return to the gate. Therefore, the answer is <strong>(A) On a plane</strong>.</p>
+                    </div>
+                </div>
+
+                <!-- Example 2 -->
+                <div class="sample">
+                    <h3 style="color: #764ba2; margin-bottom: 20px;">Example 2: Sport Identification</h3>
+
+                    <div style="margin-bottom: 25px;">
+                        <h4 style="color: #667eea; margin-bottom: 15px;">🎵 Audio Input</h4>
+                        <audio controls style="width: 100%;">
+                            <source src="audio/mmar_2.wav" type="audio/wav">
+                            Your browser does not support the audio element.
+                        </audio>
+                    </div>
+
+                    <div style="background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <p style="margin-bottom: 20px;"><strong style="color: #667eea;">👤 User:</strong> Determine what sport is being described in the audio? Choose the correct option from the following options: (A) Golf (B) Tennis (C) Baseball (D) Bowling.</p>
+                        <p><strong style="color: #48bb78;">🤖 Assistant:</strong> The phrases 'bogey', 'right shoulder really high', 'sling that ball in from right to left' and 'get that ball in' are indicative of a sport where a player aims to get a ball into a hole. Therefore, the answer is <strong>(A) Golf</strong>.</p>
+                    </div>
+                </div>
+
+                <!-- Example 3 -->
+                <div class="sample">
+                    <h3 style="color: #764ba2; margin-bottom: 20px;">Example 3: Cat Behavior</h3>
+
+                    <div style="margin-bottom: 25px;">
+                        <h4 style="color: #667eea; margin-bottom: 15px;">🎵 Audio Input</h4>
+                        <audio controls style="width: 100%;">
+                            <source src="audio/mmar_3.wav" type="audio/wav">
+                            Your browser does not support the audio element.
+                        </audio>
+                    </div>
+
+                    <div style="background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <p style="margin-bottom: 20px;"><strong style="color: #667eea;">👤 User:</strong> What are the two cats doing in the video? Choose the correct option from the following options: (A) Grooming each other (B) Fighting (C) Playing together (D) Sitting together resting.</p>
+                        <p><strong style="color: #48bb78;">🤖 Assistant:</strong> The audio features sounds of meowing and hissing, which are typically associated with cats interacting in a confrontational or playful manner. The presence of a metal object being moved suggests an active environment, further supporting the idea of interaction rather than passive rest. Therefore, the most likely scenario is: <strong>(B) Fighting</strong>.</p>
+                    </div>
+                </div>
+
+                <!-- Example 4 -->
+                <div class="sample">
+                    <h3 style="color: #764ba2; margin-bottom: 20px;">Example 4: Music Rhythm Change</h3>
+
+                    <div style="margin-bottom: 25px;">
+                        <h4 style="color: #667eea; margin-bottom: 15px;">🎵 Audio Input</h4>
+                        <audio controls style="width: 100%;">
+                            <source src="audio/mmar_4.wav" type="audio/wav">
+                            Your browser does not support the audio element.
+                        </audio>
+                    </div>
+
+                    <div style="background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <p style="margin-bottom: 20px;"><strong style="color: #667eea;">👤 User:</strong> At which second does the rhythm of the music suddenly change? Choose the correct option from the following options: (A) 5 (B) 6 (C) 3 (D) 4.</p>
+                        <p><strong style="color: #48bb78;">🤖 Assistant:</strong> The music starts with a steady beat, but around the 3-second mark, there's a noticeable shift in the rhythm, suggesting a change in the musical structure or arrangement. Therefore, the answer is: <strong>(C) 3</strong>.</p>
+                    </div>
+                </div>
+
+                <!-- Example 5 -->
+                <div class="sample">
+                    <h3 style="color: #764ba2; margin-bottom: 20px;">Example 5: Speaker Age Identification</h3>
+
+                    <div style="margin-bottom: 25px;">
+                        <h4 style="color: #667eea; margin-bottom: 15px;">🎵 Audio Input</h4>
+                        <audio controls style="width: 100%;">
+                            <source src="audio/mmar_5.wav" type="audio/wav">
+                            Your browser does not support the audio element.
+                        </audio>
+                    </div>
+
+                    <div style="background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <p style="margin-bottom: 20px;"><strong style="color: #667eea;">👤 User:</strong> Is the second speaker in the audio a child or an adult? Choose the correct option from the following options: (A) Adult (B) Child.</p>
+                        <p><strong style="color: #48bb78;">🤖 Assistant:</strong> The audio features a female voice asking a question about wishes, followed by a response about toys. The speech characteristics indicate the speaker is a child, specifically between the ages of 4-6 years old. Therefore, the second speaker is a child. Therefore, the answer is <strong>(B) Child</strong>.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <footer>
+            <p>UALM: Unified Audio and Language Model for enhanced audio generation</p>
+            <p>Compare model outputs and explore dialogue-based audio generation</p>
+            <p style="margin-top: 10px;">
+                <a href="https://github.com/jctian98/UALM" class="github-link">View on GitHub</a>
+            </p>
+        </footer>
+    </div>
+</body>
+</html>
